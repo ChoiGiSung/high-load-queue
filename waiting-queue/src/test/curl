@@ -1,0 +1,6 @@
+curl -X POST http://localhost:8081/waiting-queue \
+  -H "Content-Type: application/json" \
+  -d '{"userId":1234}'
+
+
+curl -X GET "http://localhost:8081/waiting-queue/rank?userId=1234"
