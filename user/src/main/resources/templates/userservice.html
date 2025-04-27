@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Waiting Queue</title>
+    <script>
+        let pollingIntervalId = null;
+
+        function getRank(showAlert = true) {
+            const userId = document.getElementById("userIdInput").value;
+            if (!userId) {
+                if (showAlert) alert("userId를 입력해주세요.");
+                return;
+            }
+
+            fetch(`http://localhost:8081/waiting-queue/rank?userId=${userId}`)
+                .then(response => response.json())
+                .then(data => {
+                    const message = data.rank !== null
+                        ? `당신은 ${data.type}에서 ${data.rank + 1}번째 입니다.`
+                        : "대기열에 없습니다.";
+
+                    if (showAlert) {
+                        alert(message);
+                    } else {
+                        document.getElementById("pollingResult").innerText = message;
+                    }
+                })
+                .catch(error => {
+                    console.error(error);
+                    if (showAlert) alert("조회 실패!");
+                });
+        }
+
+        function joinWaitingQueue() {
+            const userId = document.getElementById("userIdInput").value;
+            if (!userId) {
+                alert("userId를 입력해주세요.");
+                return;
+            }
+
+            fetch("http://localhost:8081/waiting-queue", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ userId: Number(userId) })
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert("Waiting Queue에 참가했습니다!");
+                } else {
+                    alert("참가 실패!");
+                }
+            })
+            .catch(error => {
+                console.error(error);
+                alert("참가 실패!");
+            });
+        }
+
+        function startPolling() {
+            if (pollingIntervalId !== null) {
+                alert("이미 폴링 중입니다!");
+                return;
+            }
+
+            const userId = document.getElementById("userIdInput").value;
+            if (!userId) {
+                alert("userId를 입력해주세요.");
+                return;
+            }
+
+            getRank(false); // 처음 바로 한 번 조회
+            pollingIntervalId = setInterval(() => {
+                getRank(false);
+            }, 5000);
+        }
+
+        function stopPolling() {
+            if (pollingIntervalId !== null) {
+                clearInterval(pollingIntervalId);
+                pollingIntervalId = null;
+                document.getElementById("pollingResult").innerText = "폴링 중단됨.";
+            }
+        }
+    </script>
+</head>
+<body>
+
+<h1>Waiting Queue 테스트</h1>
+
+<input type="number" id="userIdInput" placeholder="User ID를 입력하세요" />
+<br/><br/>
+
+<button onclick="getRank()">내 Rank 보기</button>
+<button onclick="joinWaitingQueue()">Waiting에 참가하기</button>
+<br/><br/>
+
+<button onclick="startPolling()">폴링 시작</button>
+<button onclick="stopPolling()">폴링 중단</button>
+<br/><br/>
+
+<h3 id="pollingResult">여기에 순위가 표시됩니다.</h3>
+
+</body>
+</html>
