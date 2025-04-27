@@ -1,8 +1,10 @@
-package com.coco.waitingqueue
+package com.coco.scheduler
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
+import org.springframework.scheduling.annotation.EnableScheduling
 
+@EnableScheduling
 @SpringBootApplication
 class SchedulerApplication
 

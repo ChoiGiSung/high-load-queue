@@ -26,10 +26,23 @@ class WaitingQueueApiController(
     fun getWaitingQueueRank(
         @RequestParam userId: Long
     ): WaitingQueueResponse {
+        val waitingQueueKey = configProperties.redisProperties().waitingQueueKey
+        val joiningQueueKey = configProperties.redisProperties().joiningQueueKey
+        val userIdString = userId.toString()
 
-        val rank = waitingQueueTemplate.opsForZSet()
-            .rank(configProperties.redisProperties().waitingQueueKey, userId.toString())
-        return WaitingQueueResponse(userId, rank)
+        queueTemplateRank(waitingQueueKey, userIdString)?.let {
+            return WaitingQueueResponse(QueueType.WAITING_QUEUE, userId, it)
+        }
+
+        queueTemplateRank(joiningQueueKey, userIdString)?.let {
+            return WaitingQueueResponse(QueueType.JOINING_QUEUE, userId, it)
+        }
+
+        return WaitingQueueResponse(QueueType.UNKNOWN, userId, null)
+    }
+
+    private fun queueTemplateRank(key: String, userId: String): Long? {
+        return waitingQueueTemplate.opsForZSet().rank(key, userId)
     }
 
 
@@ -38,7 +51,9 @@ class WaitingQueueApiController(
     )
 
     data class WaitingQueueResponse(
+        val type: QueueType,
         val userId: Long,
         val rank: Long? // 없으면 null
     )
+
 }

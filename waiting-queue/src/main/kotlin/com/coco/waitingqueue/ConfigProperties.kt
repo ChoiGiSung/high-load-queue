@@ -16,5 +16,6 @@ class ConfigProperties {
         lateinit var host: String
         lateinit var port: String
         lateinit var waitingQueueKey: String
+        lateinit var joiningQueueKey: String
     }
 }
